@@ -5,10 +5,33 @@
 
 class Arm {
     public:
+        /**
+         * @param 机械臂参数
+         */
         typedef struct {
+            /**
+             * @brief 电机串口地址
+             */
             int _addr_j1, _addr_j2, _addr_j3;
+            
+            /**
+             * @brief 机械臂参数，用于运动学逆解
+             */
             int L1, L2, L3;
+
+            /**
+             * @brief 减速箱减速比
+             */
+            float ratio;
         } ArmParam;
+
+        typedef struct {
+            /**
+             * @brief 关节角度
+             */
+           float angle_j1, angle_j2, angle_j3; 
+        } ArmStatus;
+
         /**
          * @brief 云台构造函数
          * @param _serial 云台串口
@@ -51,6 +74,7 @@ class Arm {
 
     private:
         ArmParam arm_parm;
+        ArmStatus arm_status;
         Stepper stepper_j1;
         Stepper stepper_j2;
         Stepper stepper_j3;

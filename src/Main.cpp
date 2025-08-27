@@ -4,7 +4,8 @@
 #include "Utils.hpp"
 #include "Arm.hpp"
 
-Arm arm(Serial1, {1, 2, 3, 1, 1, 1});
+Arm::ArmParam arm_pargram = {1, 2, 3, 1, 1, 1, 20.0};
+Arm arm(Serial1, arm_pargram);
 
 void serial_on_msg() {
   static bool enable = 1;
@@ -16,13 +17,27 @@ void serial_on_msg() {
     int j2 = tokens[2].toInt();
     int j3 = tokens[3].toInt();
 
-    j1 = clip(j1, -30, 30);
-    j2 = clip(j2, -30, 30);
-    j3 = clip(j3, -30, 30);
+    j1 = clip(j1, -50, 50);
+    j2 = clip(j2, -50, 50);
+    j3 = clip(j3, -50, 50);
 
     Serial.println("J1: " + String(j1) + " J2: " + String(j2) + " J3: " + String(j3));
 
     arm.set_joint_speed(j1, j2, j3);
+  }
+
+  if (tokens[0] == "ANGLE") {
+    int j1 = tokens[1].toInt();
+    int j2 = tokens[2].toInt();
+    int j3 = tokens[3].toInt();
+
+    j1 = clip(j1, -70, 70);
+    j2 = clip(j2, -70, 70);
+    j3 = clip(j3, -70, 70);
+
+    Serial.println("J1: " + String(j1) + " J2: " + String(j2) + " J3: " + String(j3));
+
+    arm.set_joint_angle(j1, j2, j3);
   }
 }
 

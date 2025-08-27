@@ -24,8 +24,36 @@ int32_t Arm::degree_to_step(float angle) {
  * @brief 设置关节角度
  */
 void Arm::set_joint_angle(float j1, float j2, float j3, uint16_t speed, uint8_t acc) {
+    // 维护当前位置（关节角度）
+    float angle_j1 = Arm::arm_status.angle_j1;
+    float angle_j2 = Arm::arm_status.angle_j2;
+    float angle_j3 = Arm::arm_status.angle_j3;
 
+    // 目标角度差
+    float angle_det_j1 = j1 - angle_j1;
+    float angle_det_j2 = j2 - angle_j2;
+    float angle_det_j3 = j3 - angle_j3;
+
+    // 角度差按照减速比转换到步数
+    const float steps_per_deg = (3200.0f * Arm::arm_parm.ratio) / 360.0f;
+    int32_t step_j1 = static_cast<int32_t>(angle_det_j1 * steps_per_deg);
+    int32_t step_j2 = static_cast<int32_t>(angle_det_j2 * steps_per_deg);
+    int32_t step_j3 = static_cast<int32_t>(angle_det_j3 * steps_per_deg);
+
+    // 执行相对移动
+    stepper_j1.add_position(step_j1, speed, acc, true);
+    stepper_j2.add_position(step_j2, speed, acc, true);
+    stepper_j3.add_position(step_j3, speed, acc, true);
+
+    // 更新状态
+    Arm::arm_status.angle_j1 = j1;
+    Arm::arm_status.angle_j2 = j2;
+    Arm::arm_status.angle_j3 = j3;
+
+    // 同步启动
+    Stepper::sync_all(Arm::serial);
 }
+
 
 /**
  * @brief 设置关节速度
