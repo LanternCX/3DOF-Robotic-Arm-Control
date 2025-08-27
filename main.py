@@ -58,7 +58,12 @@ try:
 
         # print(f"x_speed: {control_val['LEFT_JOYSTICK_Y']}, y_speed：{control_val['RIGHT_JOYSTICK_X']}")
 
-        command = "CONTROL " + str(int(control_val['RIGHT_JOYSTICK_X'] * 10)) + ' ' + str(int(control_val['LEFT_JOYSTICK_Y'] * 10))
+        command = (
+                "SPEED "
+                + str(int(control_val['RIGHT_JOYSTICK_Y'] * 30)) + ' '
+                + str(int(control_val['LEFT_JOYSTICK_Y'] * 30)) + ' '
+                + str(int(control_val['RIGHT_JOYSTICK_X'] * 30))
+        )
         ser.write((command + "\n").encode())
         print("Tx: " + command)
 
