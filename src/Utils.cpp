@@ -18,5 +18,6 @@ std::vector<String> split(String str, char ch) {
         }
         temp += c;
     }
+    res.push_back(temp);
     return res;
 }
