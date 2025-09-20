@@ -3,6 +3,7 @@
 #include "Stepper.hpp"
 #include "Utils.hpp"
 #include "Arm.hpp"
+#include "Debug.hpp"
 
 Arm::ArmParam arm_pargram = {1, 2, 3, 1, 1, 1, 20.0};
 Arm arm(Serial1, arm_pargram);
@@ -41,7 +42,19 @@ void serial_on_msg() {
   }
 }
 
-void setup() {
+void loop_run() {
+  // 串口协议处理
+  if (Serial.available()) {
+    serial_on_msg();
+  }
+  delay(1);
+}
+
+void loop_test() {
+
+}
+
+void setup_run() {
   Serial.begin(115200);
   Serial1.begin(115200, SERIAL_8N1, 25, 26);
 
@@ -50,10 +63,18 @@ void setup() {
   delay(2000);
 }
 
+void setup_test() {
+  Serial.begin(115200);
+  std::vector<int> a = {1, 2, 3};
+  debug(a);
+}
+
+void setup() {
+  // setup_run();
+  setup_test();
+}
+
 void loop() {
-  // 串口协议处理
-  if (Serial.available()) {
-    serial_on_msg();
-  }
-  delay(1);
+  // loop_run();
+  loop_test();
 }
