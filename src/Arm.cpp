@@ -69,5 +69,17 @@ void Arm::set_joint_speed(int16_t j1, int16_t j2, int16_t j3, uint8_t acc){
  * @brief 逆解出关节位置
  */
 void Arm::move_to(float theta, float r, float h, uint16_t speed, uint8_t acc) {
+    const float L1 = 124.75;
+    const float L2 = 190;
+    const float L3 = 197;
 
+    float l = std::sqrt(r * r + (h - L1) * (h - L1));
+    float alpha = std::atan2(h - L1, r);
+    float beta = std::acos((l * l + L2 * L2 - L3 * L3) / (2 * L2 * l));
+
+    float theta1 = theta;
+    float theta2 = PI / 2 - (alpha + beta);
+    float theta3 = std::acos((l * l - L2 * L2 - L3 * L3) / (2 * L2 * L3)) - (alpha + beta);
+
+    set_joint_angle(theta1, theta2, theta3, speed, acc);
 }
