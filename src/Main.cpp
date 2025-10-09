@@ -28,11 +28,11 @@ void serial_on_msg() {
   }
 
   if (tokens[0] == "ANGLE") {
-    int j1 = tokens[1].toInt();
-    int j2 = tokens[2].toInt();
-    int j3 = tokens[3].toInt();
+    int j1 = tokens[2].toInt();
+    int j2 = tokens[3].toInt();
+    int j3 = tokens[1].toInt();
 
-    j1 = clip(j1, -70, 70);
+    j1 = clip(-j1, -70, 70);
     j2 = clip(j2, -70, 70);
     j3 = clip(j3, -70, 70);
 
@@ -71,10 +71,10 @@ void setup_test() {
 
 void setup() {
   // setup_run();
-  setup_test();
+  setup_run();
 }
 
 void loop() {
   // loop_run();
-  loop_test();
+  loop_run();
 }
