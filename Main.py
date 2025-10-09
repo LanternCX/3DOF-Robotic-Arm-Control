@@ -31,11 +31,13 @@ def fk(theta1_, theta2_, theta3_):
     _theta = theta1_
     return _r, _theta, _h
 
-ser = serial.Serial('/tmp/ttyV0', 115200, timeout=1)
+ser_xiaozhi = serial.Serial('/tmp/ttyV0', 115200, timeout=1)
+
+ser_control = serial.Serial('/dev/cu.usbserial-0001', 115200, timeout=1)
 
 if __name__ == '__main__':
     while True:
-        data = ser.readline().decode('utf-8').strip()
+        data = ser_xiaozhi.readline().decode('utf-8').strip()
         tokens = data.split()
         if tokens:
             print("Serial Read:", tokens)
@@ -45,11 +47,17 @@ if __name__ == '__main__':
                 result = (round(math.degrees(temp[0])), round(math.degrees(temp[1])), round(math.degrees(temp[2])))
                 print("IK-Result: ", result)
                 msg = f"{result[0]} {result[1]} {result[2]}"
-                ser.write((msg + "\n").encode('utf-8'))
+                ser_xiaozhi.write((msg + "\n").encode('utf-8'))
+                cmd = f"ANGLE {result[0]} {result[1]} {result[2]}"
+                print(f"Serial-USB: {cmd}")
+                ser_control.write((cmd+"\n").encode('utf-8'))
             if tokens[0] == "fk":
                 print("FK: ", tokens[1], tokens[2], tokens[3])
                 temp = fk(math.radians(float(tokens[1])), math.radians(float(tokens[2])), math.radians(float(tokens[3])))
                 result = (round(temp[0], 1), round(math.degrees(temp[1]), 1), round(temp[2], 1))
                 print("FK-Result: ", result)
                 msg = f"{result[0]} {result[1]} {result[2]}"
-                ser.write((msg + "\n").encode('utf-8'))
+                ser_xiaozhi.write((msg + "\n").encode('utf-8'))
+                cmd = f"ANGLE {tokens[1]} {tokens[2]} {tokens[3]}"
+                print(f"Serial-USB: {cmd}")
+                ser_control.write((cmd + "\n").encode('utf-8'))
