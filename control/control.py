@@ -1,0 +1,29 @@
+from .kinematics import ik, fk
+import math
+from utils.serials import Serials
+from utils.math import rad2deg, deg2rad
+from utils.logger import get_logger
+
+logger = get_logger("Control")
+
+"""
+移动到柱面坐标，弧度制
+"""
+def move_to(r, theta, h):
+    logger.info(f"Move to: {r, theta, h}")
+    set_angle(ik(r, theta, h))
+
+"""
+设置三个关节的角度，弧度制
+"""
+def set_angle(angle1, angle2=None, angle3=None):
+    if angle2 is None and angle3 is None:
+        if isinstance(angle1, (tuple, list)):
+            angle1, angle2, angle3 = angle1
+        else:
+            raise ValueError("Three independent parameters or a triplet/list need to be passed in")
+
+    logger.info(f"Set Angle: {angle1, angle2, angle3}")
+    cmd = f"ANGLE {math.degrees(angle1):.2f} {math.degrees(angle2):.2f} {math.degrees(angle3):.2f}"
+    Serials.send("arm", cmd)
+
