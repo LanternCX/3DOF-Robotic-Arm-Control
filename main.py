@@ -1,5 +1,4 @@
 import cv2
-import serial
 import atexit
 from utils.math import deg2rad
 from control.kinematics import fk
@@ -8,23 +7,21 @@ from vision.detection import detect_boxes
 from utils.logger import get_logger
 from utils.serials import Serials
 
-logger = get_logger("main")
+logger = get_logger("Main")
+ser = Serials.register("/dev/cu.usbserial-0001", "arm")
 
-def cleanup(ser):
+def cleanup():
     try:
-        ser.write(b"ANGLE 0 0 0")
-        ser.close()
+        ser.send("ANGLE 0 0 0")
+        Serials.close_all()
         cv2.destroyAllWindows()
         logger.info("Cleaned up and closed serial/camera.")
     except Exception as e:
         logger.error(f"Cleanup failed: {e}")
 
 if __name__ == "__main__":
-    # 初始化串口
-    ser = serial.Serial('/dev/cu.usbserial-0001', 115200, timeout=1)
-
     # 注册清理函数
-    atexit.register(cleanup, ser)
+    atexit.register(cleanup)
 
     # 初始化视觉
     cap = cv2.VideoCapture(0)
@@ -32,7 +29,7 @@ if __name__ == "__main__":
     frame_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     # 初始化角度信息
-    ser.write(b"ANGLE 0 0 45")
+    ser.send("ANGLE 0 0 45")
     angle1, angle2, angle3 = deg2rad(0, 0, 45)
     r, theta, h = fk(angle1, angle2, angle3)
 
@@ -51,7 +48,7 @@ if __name__ == "__main__":
 
         # 按下 m 键时跟踪目标
         if key == ord('m'):
-            r, theta, h, dx, dy = move_to_box(ser, boxes, frame_w, frame_h, r, theta, h)
+            r, theta, h, dx, dy = move_to_box(boxes, frame_w, frame_h, r, theta, h)
 
         if key == ord('q'):
             break
