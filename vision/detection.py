@@ -4,8 +4,12 @@ from utils.logger import get_logger
 
 logger = get_logger("vision")
 
-def detect_boxes_from_frame(frame):
+"""
+识别目标
+"""
+def detect_boxes(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # 识别绿色
     lower_green = np.array([35, 40, 40])
     upper_green = np.array([85, 255, 255])
 
@@ -26,6 +30,9 @@ def detect_boxes_from_frame(frame):
     logger.debug(f"Detected {len(boxes)} green boxes.")
     return boxes, frame
 
+"""
+获取第一个目标的中心
+"""
 def get_first_box_center(boxes):
     if not boxes:
         return None

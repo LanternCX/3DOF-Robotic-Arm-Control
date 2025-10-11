@@ -8,6 +8,9 @@ logger = get_logger("motion")
 REAL_W = 245
 READ_H = 130
 
+"""
+调整相机中心到目标
+"""
 def move_to_box(ser, boxes, frame_w, frame_h, now_r, now_theta, now_h):
     from vision.detection import get_first_box_center
     center = get_first_box_center(boxes)
