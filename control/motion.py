@@ -1,8 +1,10 @@
 import math
+
 from utils.math import polar2xyz, xyz2polar
-from control.kinematics import ik
 from utils.logger import get_logger
 from utils.serials import Serials
+from .control import move_to, set_angle
+from .kinematics import ik
 
 logger = get_logger("motion")
 
@@ -13,7 +15,6 @@ READ_H = 130
 调整相机中心到目标
 """
 def move_to_box(boxes, frame_w, frame_h, now_r, now_theta, now_h):
-    ser = Serials.get("arm")
     from vision.detection import get_first_box_center
     center = get_first_box_center(boxes)
     if center is None:
@@ -29,9 +30,7 @@ def move_to_box(boxes, frame_w, frame_h, now_r, now_theta, now_h):
     target_y = now_y + dy
     target_r, target_theta, target_h = xyz2polar(target_x, target_y, now_z)
 
-    theta1, theta2, theta3 = ik(target_r, target_theta, target_h)
-    cmd = f"ANGLE {math.degrees(theta1):.2f} {math.degrees(theta2):.2f} {math.degrees(theta3):.2f}"
-    ser.send(cmd)
-    logger.info(f"Sent command: {cmd}")
+    logger.info(f"Move to box: {center}")
+    move_to(target_r, target_theta, target_h)
 
     return target_r, target_theta, target_h, dx, dy

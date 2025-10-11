@@ -16,7 +16,7 @@ class SerialInstance:
     def send(self, msg: str) -> "SerialInstance":
         try:
             self._ser.write(msg.encode("utf-8"))
-            logger.info(f"[SerialInstance] {self.name} sent: {msg}")
+            logger.debug(f"[SerialInstance] {self.name} sent: {msg}")
         except Exception as e:
             logger.error(f"[SerialInstance] {self.name} failed to send: {e}")
         return self  # 支持链式调用

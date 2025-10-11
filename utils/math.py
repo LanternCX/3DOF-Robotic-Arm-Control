@@ -20,11 +20,16 @@ def polar2xyz(r, theta, h):
 角度制转弧度制
 """
 def deg2rad(*angles):
+    if len(angles) == 1 and isinstance(angles[0], (tuple, list)):
+        angles = angles[0]
     return tuple(math.radians(a) for a in angles)
 
 """
 弧度制转角度制
 """
 def rad2deg(*angles):
+    if len(angles) == 1 and isinstance(angles[0], (tuple, list)):
+        angles = angles[0]
     return tuple(math.degrees(a) for a in angles)
+
 

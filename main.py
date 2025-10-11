@@ -6,13 +6,14 @@ from control.motion import move_to_box
 from vision.detection import detect_boxes
 from utils.logger import get_logger
 from utils.serials import Serials
+from control.control import set_angle
 
 logger = get_logger("Main")
 ser = Serials.register("/dev/cu.usbserial-0001", "arm")
 
 def cleanup():
     try:
-        ser.send("ANGLE 0 0 0")
+        set_angle(deg2rad(0, 0, 0))
         Serials.close_all()
         cv2.destroyAllWindows()
         logger.info("Cleaned up and closed serial/camera.")
@@ -31,6 +32,7 @@ if __name__ == "__main__":
     # 初始化角度信息
     ser.send("ANGLE 0 0 45")
     angle1, angle2, angle3 = deg2rad(0, 0, 45)
+    set_angle(angle1, angle2, angle3)
     r, theta, h = fk(angle1, angle2, angle3)
 
     logger.info("Robot arm system initialized.")
