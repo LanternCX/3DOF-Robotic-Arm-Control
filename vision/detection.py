@@ -59,19 +59,21 @@ def is_camera_moved(current_boxes, threshold_px=5):
 
     if not current_boxes:
         prev_boxes_edges = []
+        logger.debug("Camera not moved: no target")
         return False  # 无目标，默认稳定
 
     # 计算当前 boxes 边缘
     current_edges = []
     for box in current_boxes:
-        if len(box) != 4:
+        if len(box) != 2:
             continue
-        x1, y1, x2, y2 = box
+        (x1, y1), (x2, y2) = box
         current_edges.append((x1, y1, x2, y2))
 
     # 第一次调用，没有上一帧，保存并返回 False
     if not prev_boxes_edges:
         prev_boxes_edges = current_edges
+        logger.debug("Camera not moved: no prev")
         return False
 
     # 如果数量不同，也认为相机移动
