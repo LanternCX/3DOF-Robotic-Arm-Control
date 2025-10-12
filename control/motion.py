@@ -1,10 +1,6 @@
-import math
-
-from utils.math import polar2xyz, xyz2polar
 from utils.logger import get_logger
-from utils.serials import Serials
-from .control import move_to, set_angle
-from .kinematics import ik
+from utils.math import polar2xyz, xyz2polar
+from .move import move_to
 
 logger = get_logger("motion")
 
@@ -14,6 +10,8 @@ READ_H = 130
 """
 调整相机中心到目标
 """
+
+
 def move_to_box(boxes, frame_w, frame_h, now_r, now_theta, now_h):
     from vision.detection import get_first_box_center
     center = get_first_box_center(boxes)
