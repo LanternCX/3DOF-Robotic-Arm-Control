@@ -4,6 +4,11 @@ import time
 
 import cv2
 
+import asyncio
+
+from command.controller import handle_client_message
+from utils.socket import WebSocketServer, WebSocketClient
+
 from control.control import control_state_machine
 from control.kinematics import fk
 from control.move import set_angle
@@ -11,6 +16,7 @@ from utils.logger import get_logger
 from utils.math import deg2rad
 from utils.serials import Serials
 from vision.vision import vision_thread_func
+
 
 # ---------- 可调参数 ----------
 # 判断机械臂运动稳定的连续帧数
@@ -69,10 +75,10 @@ def cleanup():
         state.logger.error(f"Cleanup failed: {e}")
 
 
-atexit.register(cleanup)
-
-
-def main():
+async def main():
+    # 注册退出函数
+    atexit.register(cleanup)
+    # 初始化视觉
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         state.logger.error("Cannot open camera.")
@@ -82,19 +88,31 @@ def main():
     state.frame_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     state.frame_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+    # 初始化机械臂构型
     angle1, angle2, angle3 = deg2rad(0, 0, 45)
     set_angle(angle1, angle2, angle3)
     r, theta, h = fk(angle1, angle2, angle3)
 
     state.logger.info("Robot arm system initialized.")
 
+    # 启动视觉线程与控制线程
     vis_t = threading.Thread(target=vision_thread_func, args=(state,), daemon=True)
     ctrl_t = threading.Thread(target=control_state_machine, args=(state, state.frame_w, state.frame_h, r, theta, h),
                               daemon=True)
     vis_t.start()
     ctrl_t.start()
 
+    # 初始化 Websocket 通信服务
+    client = WebSocketClient(uri="ws://localhost:8765", on_message=handle_client_message)
+    asyncio.create_task(client.connect())
+    await asyncio.sleep(1)
+    await client.send({"cmd": "echo", "msg": "Hello from client!"})
+    await asyncio.Future()
+
+    # OpenCV 调试窗口
     cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
+
+    # 调试窗口主循环
     try:
         while not state.stop_request.is_set():
             with state.lock:
