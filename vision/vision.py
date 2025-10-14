@@ -1,7 +1,7 @@
 import time
 
 from vision.detection import detect_boxes, is_camera_moved
-
+from shared.state import state as shared_state
 
 def vision_thread_func(state, VISION_SLEEP=0.01):
     """
@@ -11,14 +11,14 @@ def vision_thread_func(state, VISION_SLEEP=0.01):
     3. 判断相机是否移动
     4. 更新共享状态
     """
-    cap = state.cap  # 假设 main.py 已经将 cap 赋给 state.cap
+    cap = state.cap  # 假设 main.py 已经将 cap 赋给 shared.cap
     while not state.stop_request.is_set():
         ret, frame = cap.read()
         if not ret:
             time.sleep(VISION_SLEEP)
             continue
 
-        boxes, vis_frame = detect_boxes(frame)
+        boxes, vis_frame = detect_boxes(frame, shared_state.target_type)
 
         with state.lock:
             state.boxes = boxes

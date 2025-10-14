@@ -6,7 +6,7 @@ import cv2
 
 import asyncio
 
-from command.controller import handle_client_message
+from command.controller import handle_server_message
 from utils.socket import WebSocketServer, WebSocketClient
 
 from control.control import control_state_machine
@@ -16,6 +16,10 @@ from utils.logger import get_logger
 from utils.math import deg2rad
 from utils.serials import Serials
 from vision.vision import vision_thread_func
+
+from shared.state import state
+
+logger = get_logger("Main")
 
 
 # ---------- 可调参数 ----------
@@ -34,45 +38,16 @@ MAX_SETTLE_WAIT = 8.0
 # 单次命令后，等待开始移动的的最长时间，单位秒
 MAX_MOVE_START_WAIT = 4.0
 
-
-# -------------------------------
-
-class SharedState:
-    def __init__(self):
-        self.boxes = []
-        self.frame = None
-        self.frame_w = 0
-        self.frame_h = 0
-        self.camera_moved = False
-        self.lock = threading.Lock()
-
-        # 控制信号
-        self.move_request = threading.Event()
-        self.stop_request = threading.Event()
-        self.move_done = threading.Event()
-        self.manual_trigger = False
-
-        # 可观察/调试的状态
-        self.sm_state = None
-        self.adjust_count = 0
-        self.last_error = None
-
-        # 线程和硬件相关
-        self.cap = None
-        self.logger = get_logger("Main")
-
-
-state = SharedState()
-ser = Serials.register("/dev/cu.usbserial-0001", "arm")
+ser = Serials.register("/dev/ttys002", "arm")
 
 def cleanup():
     try:
         set_angle(deg2rad(0, 0, 0))
         Serials.close_all()
         cv2.destroyAllWindows()
-        state.logger.info("Cleaned up and closed serial/camera.")
+        logger.info("Cleaned up and closed serial/camera.")
     except Exception as e:
-        state.logger.error(f"Cleanup failed: {e}")
+        logger.error(f"Cleanup failed: {e}")
 
 
 async def main():
@@ -81,7 +56,7 @@ async def main():
     # 初始化视觉
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        state.logger.error("Cannot open camera.")
+        logger.error("Cannot open camera.")
         return
 
     state.cap = cap
@@ -93,7 +68,7 @@ async def main():
     set_angle(angle1, angle2, angle3)
     r, theta, h = fk(angle1, angle2, angle3)
 
-    state.logger.info("Robot arm system initialized.")
+    logger.info("Robot arm system initialized.")
 
     # 启动视觉线程与控制线程
     vis_t = threading.Thread(target=vision_thread_func, args=(state,), daemon=True)
@@ -102,12 +77,10 @@ async def main():
     vis_t.start()
     ctrl_t.start()
 
-    # 初始化 Websocket 通信服务
-    client = WebSocketClient(uri="ws://localhost:8765", on_message=handle_client_message)
-    asyncio.create_task(client.connect())
-    await asyncio.sleep(1)
-    await client.send({"cmd": "echo", "msg": "Hello from client!"})
-    await asyncio.Future()
+    # 初始化 Websocket
+    server = WebSocketServer(host="localhost", port=8765, on_message=handle_server_message)
+    await server.start()
+    logger.info("Websocket server start")
 
     # OpenCV 调试窗口
     cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
@@ -142,24 +115,24 @@ async def main():
             if key == ord('m'):
                 state.manual_trigger = True
                 state.move_request.set()
-                state.logger.info("Manual move request (key 'm').")
+                logger.info("Manual move request (key 'm').")
             elif key == ord('q'):
-                state.logger.info("Quit requested (key 'q').")
+                logger.info("Quit requested (key 'q').")
                 state.stop_request.set()
                 break
 
             time.sleep(0.02)
 
     except KeyboardInterrupt:
-        state.logger.info("KeyboardInterrupt: stopping.")
+        logger.info("KeyboardInterrupt: stopping.")
         state.stop_request.set()
     finally:
         cap.release()
         cv2.destroyAllWindows()
         vis_t.join(timeout=1)
         ctrl_t.join(timeout=1)
-        state.logger.info("Main exiting.")
+        logger.info("Main exiting.")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
