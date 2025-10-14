@@ -13,7 +13,9 @@ logger = get_logger("Control")
 
 def move_to(r, theta, h):
     logger.info(f"Move to: {r, theta, h}")
-    set_angle(ik(r, theta, h))
+    angles = ik(r, theta, h)
+    set_angle(angles)
+    return angles
 
 
 """

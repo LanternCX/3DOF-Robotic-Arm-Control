@@ -35,7 +35,15 @@ async def dispatch_command(cmd: str, args: list, websocket):
         return
 
     try:
-        # 传入 websocket + args
-        await handler(websocket, *args)
+        res = await handler(websocket, *args)
+
+        # 在这里立即复制一份，防止引用变动
+        res_copy = json.loads(json.dumps(res)) if res is not None else None
+
+        if res:
+            await websocket.send(json.dumps(res_copy))
+        else:
+            await websocket.send(json.dumps({"type": "success", "msg": "no reply"}))
+
     except Exception as e:
         await websocket.send(json.dumps({"type": "error", "msg": f"Execution error: {str(e)}"}))

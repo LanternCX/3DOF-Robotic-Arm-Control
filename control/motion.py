@@ -4,15 +4,13 @@ from .move import move_to
 
 logger = get_logger("motion")
 
-REAL_W = 245
-READ_H = 130
-
-"""
-调整相机中心到目标
-"""
-
+REAL_W = 300
+READ_H = 155
 
 def move_to_box(boxes, frame_w, frame_h, now_r, now_theta, now_h):
+    """
+    调整相机中心到目标
+    """
     from vision.detection import get_first_box_center
     center = get_first_box_center(boxes)
     if center is None:

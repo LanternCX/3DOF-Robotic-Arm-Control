@@ -13,4 +13,4 @@ async def ping_handler(websocket, *args):
     :return:
     """
     logger.info("Ping received, replying pong")
-    await websocket.send(json.dumps({"type": "pong"}))
+    return {"type": "pong"}
