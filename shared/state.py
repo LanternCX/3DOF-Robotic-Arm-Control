@@ -30,6 +30,16 @@ class SharedState:
 
         # 视觉目标
         self.target_type = "green"
+        self.now_target_type = None
+
+        # 当前机械臂位置 (r, theta, h)
+        self.current_pos = (0.0, 0.0, 0.0)
+        # 抓取前位置，用于抓取流程
+        self.pre_catch_pos = None
+
+        # 用于控制多线程同步
+        self.condition = threading.Condition()
+
 
 
 state = SharedState()

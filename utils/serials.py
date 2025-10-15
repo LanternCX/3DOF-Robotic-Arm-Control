@@ -1,3 +1,5 @@
+import time
+
 import serial
 import atexit
 from typing import Optional
@@ -16,7 +18,8 @@ class SerialInstance:
     def send(self, msg: str) -> "SerialInstance":
         try:
             self._ser.write(msg.encode("utf-8"))
-            logger.debug(f"[SerialInstance] {self.name} sent: {msg}")
+            logger.info(f"[SerialInstance] {self.name} sent: {msg}")
+            time.sleep(1)
         except Exception as e:
             logger.error(f"[SerialInstance] {self.name} failed to send: {e}")
         return self  # 支持链式调用

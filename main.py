@@ -9,7 +9,7 @@ from utils.socket import WebSocketServer
 
 from control.control import control_state_machine
 from control.kinematics import fk
-from control.move import set_angle
+from control.move import set_angle, catch_on
 from utils.logger import get_logger
 from utils.math import deg2rad
 from utils.serials import Serials
@@ -33,7 +33,6 @@ ser = Serials.register("/dev/cu.usbserial-0001", "arm")
 
 def cleanup():
     try:
-        set_angle(deg2rad(0, 0, 0))
         try:
             cv2.destroyAllWindows()
         except Exception as e:
@@ -77,6 +76,8 @@ def main():
     angle1, angle2, angle3 = deg2rad(0, 0, 30)
     set_angle(angle1, angle2, angle3)
     r, theta, h = fk(angle1, angle2, angle3)
+    state.current_pos = r, theta, h
+    catch_on()
 
     logger.info("Robot arm system initialized.")
 
@@ -84,7 +85,7 @@ def main():
     vis_t = threading.Thread(target=vision_thread_func, args=(state,), daemon=True)
     ctrl_t = threading.Thread(
         target=control_state_machine,
-        args=(state, state.frame_w, state.frame_h, r, theta, h),
+        args=(state, state.frame_w, state.frame_h),
         daemon=True
     )
     vis_t.start()
@@ -140,6 +141,8 @@ def main():
         logger.info("KeyboardInterrupt: stopping.")
         state.stop_request.set()
     finally:
+        set_angle(deg2rad(0, 0, 0))
+        catch_on()
         cap.release()
         cv2.destroyAllWindows()
         ctrl_t.join(timeout=1)

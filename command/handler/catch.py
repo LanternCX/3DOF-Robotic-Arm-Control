@@ -3,6 +3,7 @@ import json
 from command.registry import command
 from utils.logger import get_logger
 from shared.state import state
+from vision.detection import detect_boxes
 
 logger = get_logger("catch")
 
