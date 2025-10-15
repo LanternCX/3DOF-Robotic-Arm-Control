@@ -15,7 +15,7 @@ joystick.init()
 
 print(f"Connect to controller: {joystick.get_name()}")
 
-ser = serial.Serial('COM11', 115200, timeout=1)
+ser = serial.Serial('/dev/cu.usbserial-0001', 115200, timeout=1)
 
 control_val = {
     "A": 0,
@@ -53,8 +53,10 @@ try:
                 for axis in range(joystick.get_numaxes()):
                     axis_value = joystick.get_axis(axis)
                     # print(f"Handle {axis} value: {axis_value:.2f}")
-                    if axis in handle_map:
+                    if axis in handle_map and abs(axis_value) > 0.1:
                         control_val[handle_map[axis]] = axis_value
+                    else :
+                        control_val[handle_map[axis]] = 0.0
 
         # print(f"x_speed: {control_val['LEFT_JOYSTICK_Y']}, y_speed：{control_val['RIGHT_JOYSTICK_X']}")
 
@@ -72,7 +74,7 @@ try:
         #     if line:
         #         print("Rx：", line)
 
-        time.sleep(0.01)
+        time.sleep(0.05)
 
 except KeyboardInterrupt:
     print("Keyboard interrupt")
