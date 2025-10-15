@@ -7,7 +7,7 @@ from shared.state import state
 logger = get_logger("catch")
 
 @command("catch")
-async def echo_handler(websocket, *args):
+async def catch_handler(websocket, *args):
     """
     echo command demo
     :param websocket: websocket 对象

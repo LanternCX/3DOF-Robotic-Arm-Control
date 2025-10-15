@@ -34,11 +34,15 @@ ser = Serials.register("/dev/cu.usbserial-0001", "arm")
 def cleanup():
     try:
         set_angle(deg2rad(0, 0, 0))
-        Serials.close_all()
-        cv2.destroyAllWindows()
+        try:
+            cv2.destroyAllWindows()
+        except Exception as e:
+            logger.warning(f"Failed to destroy windows: {e}")
+
         logger.info("Cleaned up and closed serial/camera.")
     except Exception as e:
         logger.error(f"Cleanup failed: {e}")
+
 
 
 # ---------------------- 新增部分 ----------------------
@@ -138,8 +142,9 @@ def main():
     finally:
         cap.release()
         cv2.destroyAllWindows()
-        vis_t.join(timeout=1)
         ctrl_t.join(timeout=1)
+        vis_t.join(timeout=1)
+        ws_thread.join(timeout=1)
         logger.info("Main exiting.")
 
 

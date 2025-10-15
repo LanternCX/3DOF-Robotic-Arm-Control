@@ -6,9 +6,9 @@ from utils.logger import get_logger
 logger = get_logger("ColorDetector")
 
 COLOR_RANGES = {
-    "green": ((35, 40, 40), (85, 255, 255)),
-    "red": ((0, 120, 70), (10, 255, 255)),
-    "blue": ((100, 150, 0), (140, 255, 255)),
+    "green": ((35, 100, 100), (85, 255, 255)),
+    "red":   ((0, 150, 150), (10, 255, 255)),
+    "blue":  ((100, 150, 100), (140, 255, 255))
 }
 
 class ColorDetector(BaseDetector):

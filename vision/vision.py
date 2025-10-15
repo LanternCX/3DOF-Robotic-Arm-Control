@@ -1,7 +1,6 @@
 import time
 
 from vision.detection import detect_boxes, is_camera_moved
-from shared.state import state as shared_state
 
 def vision_thread_func(state, VISION_SLEEP=0.01):
     """
@@ -11,14 +10,21 @@ def vision_thread_func(state, VISION_SLEEP=0.01):
     3. 判断相机是否移动
     4. 更新共享状态
     """
-    cap = state.cap  # 假设 main.py 已经将 cap 赋给 shared.cap
+    cap = state.cap  # main 已经初始化
+
+    state.logger.info("Vision thread started.")
+
     while not state.stop_request.is_set():
+        if not cap.isOpened():
+            state.logger.warning("Camera closed, exiting vision thread.")
+            break
+
         ret, frame = cap.read()
         if not ret:
             time.sleep(VISION_SLEEP)
             continue
 
-        boxes, vis_frame = detect_boxes(frame, shared_state.target_type)
+        boxes, vis_frame = detect_boxes(frame, state.target_type)
 
         with state.lock:
             state.boxes = boxes
@@ -35,8 +41,4 @@ def vision_thread_func(state, VISION_SLEEP=0.01):
 
         time.sleep(VISION_SLEEP)
 
-    try:
-        cap.release()
-    except Exception:
-        pass
     state.logger.info("Vision thread exiting.")
