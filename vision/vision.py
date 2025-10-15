@@ -25,6 +25,7 @@ def vision_thread_func(state, VISION_SLEEP=0.01):
             continue
 
         boxes, vis_frame = detect_boxes(frame, state.target_type)
+        state.now_target_type = state.target_type
 
         with state.lock:
             state.boxes = boxes
