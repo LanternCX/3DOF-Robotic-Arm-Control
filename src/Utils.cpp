@@ -15,6 +15,7 @@ std::vector<String> split(String str, char ch) {
         if (c == ch) {
             res.push_back(temp);
             temp = "";
+            continue;
         }
         temp += c;
     }
