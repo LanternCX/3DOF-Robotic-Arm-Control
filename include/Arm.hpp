@@ -65,10 +65,12 @@ class Arm {
         virtual void set_joint_speed(int16_t j1, int16_t j2, int16_t j3, uint8_t acc = 0);
 
         /**
-         * @brief 移动到垂直距离为 dis 的平面上坐标为 x, y 的点
+         * @brief 移动到柱面坐标为 (r, theta, h) 的点
          * @param theta 柱面坐标角度
          * @param r 柱面坐标半径
          * @param h 柱面坐标高度
+         * @param speed 速度
+         * @param acc 加速度
          */
         virtual void move_to(float theta, float r, float h, uint16_t speed = 30, uint8_t acc = 0);
 
