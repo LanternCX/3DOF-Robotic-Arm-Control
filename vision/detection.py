@@ -1,5 +1,5 @@
-import cv2
-import numpy as np
+from .detectors.color import ColorDetector
+from .detectors.yolo import YoloDetector
 
 from utils.logger import get_logger
 
@@ -9,35 +9,30 @@ prev_centers = []
 # 用于保存上一帧的 boxes 边缘信息
 prev_boxes_edges = []
 
-"""
-识别目标
-"""
-def detect_boxes(frame):
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    lower_green = np.array([35, 40, 40])
-    upper_green = np.array([85, 255, 255])
+DETECTOR_MAP = {
+    "green": ColorDetector,
+    "red": ColorDetector,
+    "blue": ColorDetector,
+    "yolo": YoloDetector,
+}
 
-    mask = cv2.inRange(hsv, lower_green, upper_green)
-    kernel = np.ones((5, 5), np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+def detect_boxes(frame, tag="green"):
+    """
+    根据 tag 自动选择检测器
+    """
+    if tag not in DETECTOR_MAP:
+        logger.error(f"Unknown detection tag: {tag}")
+        return [], frame
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    boxes = []
-    for cnt in contours:
-        if cv2.contourArea(cnt) < 500:
-            continue
-        x, y, w, h = cv2.boundingRect(cnt)
-        boxes.append(((x, y), (x + w, y + h)))
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    detector_class = DETECTOR_MAP[tag]
+    detector = detector_class(tag)
+    return detector.detect(frame)
 
-    logger.debug(f"Detected {len(boxes)} green boxes.")
-    return boxes, frame
 
-"""
-获取第一个目标的中心
-"""
 def get_first_box_center(boxes):
+    """
+    获取第一个目标的中心
+    """
     if not boxes:
         return None
     (x1, y1), (x2, y2) = boxes[0]
@@ -59,19 +54,21 @@ def is_camera_moved(current_boxes, threshold_px=5):
 
     if not current_boxes:
         prev_boxes_edges = []
+        logger.debug("Camera not moved: no target")
         return False  # 无目标，默认稳定
 
     # 计算当前 boxes 边缘
     current_edges = []
     for box in current_boxes:
-        if len(box) != 4:
+        if len(box) != 2:
             continue
-        x1, y1, x2, y2 = box
+        (x1, y1), (x2, y2) = box
         current_edges.append((x1, y1, x2, y2))
 
     # 第一次调用，没有上一帧，保存并返回 False
     if not prev_boxes_edges:
         prev_boxes_edges = current_edges
+        logger.debug("Camera not moved: no prev")
         return False
 
     # 如果数量不同，也认为相机移动

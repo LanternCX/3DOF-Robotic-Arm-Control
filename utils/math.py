@@ -8,28 +8,31 @@ def xyz2polar(x, y, z):
     theta = math.atan2(y, x)
     return r, theta, z
 
-"""
-丛柱面坐标系转换到空间直角坐标系
-"""
 def polar2xyz(r, theta, h):
+    """
+    丛柱面坐标系转换到空间直角坐标系
+    """
     x = r * math.cos(theta)
     y = r * math.sin(theta)
     return x, y, h
 
-"""
-角度制转弧度制
-"""
 def deg2rad(*angles):
+    """
+    角度制转弧度制
+    """
     if len(angles) == 1 and isinstance(angles[0], (tuple, list)):
         angles = angles[0]
-    return tuple(math.radians(a) for a in angles)
+    result = tuple(math.radians(a) for a in angles)
+    return result[0] if len(result) == 1 else result
 
-"""
-弧度制转角度制
-"""
 def rad2deg(*angles):
+    """
+    弧度制转角度制
+    """
     if len(angles) == 1 and isinstance(angles[0], (tuple, list)):
         angles = angles[0]
-    return tuple(math.degrees(a) for a in angles)
+    result = tuple(math.degrees(a) for a in angles)
+    return result[0] if len(result) == 1 else result
+
 
 

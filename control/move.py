@@ -6,22 +6,19 @@ from .kinematics import ik
 
 logger = get_logger("Control")
 
-"""
-移动到柱面坐标，弧度制
-"""
-
-
 def move_to(r, theta, h):
+    """
+    移动到柱面坐标，弧度制
+    """
     logger.info(f"Move to: {r, theta, h}")
-    set_angle(ik(r, theta, h))
-
-
-"""
-设置三个关节的角度，弧度制
-"""
-
+    angles = ik(r, theta, h)
+    set_angle(angles)
+    return angles
 
 def set_angle(angle1, angle2=None, angle3=None):
+    """
+    设置三个关节的角度，弧度制
+    """
     if angle2 is None and angle3 is None:
         if isinstance(angle1, (tuple, list)):
             angle1, angle2, angle3 = angle1
