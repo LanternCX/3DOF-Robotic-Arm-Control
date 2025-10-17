@@ -9,7 +9,6 @@ from .move import move_to, catch_on, catch_off, set_angle
 
 
 # 状态机状态定义
-# 状态机状态定义
 class SMState(Enum):
     # 空闲，等待命令
     IDLE = auto()
@@ -36,12 +35,17 @@ class SMState(Enum):
     CATCH_ASCEND = auto()
     # 移动到目标框内
     CATCH_MOVE = auto()
+    # 下降夹爪到放置高度
+    CATCH_PUT_DESCEND = auto()
     # 张开夹爪
     CATCH_PUT = auto()
+    # 上升夹爪 10 cm
+    CATCH_PUT_ASCEND = auto()
     # 抓取完成
     CATCH_DONE = auto()
     # 抓取流程结束
     CATCH_END = auto()
+
 
 def compute_center_error_mm(state, boxes, frame_w, frame_h):
     """
@@ -238,7 +242,6 @@ def control_state_machine(state, frame_w, frame_h,
         elif sm_state == SMState.CATCH_GRAB:
             state.logger.info("SM: Catch grab (closing gripper)")
             try:
-                # 闭合夹爪
                 catch_off()
             except Exception as e:
                 state.logger.error(f"SM: error closing gripper: {e}")
@@ -272,24 +275,50 @@ def control_state_machine(state, frame_w, frame_h,
 
                 set_angle(angle_offset)
                 state.current_pos = fk(angle_offset[0], angle_offset[1], angle_offset[2])
-
             except Exception as e:
                 state.logger.error(f"SM: error during move: {e}")
                 sm_state = SMState.CATCH_END
 
+            sm_state = SMState.CATCH_PUT_DESCEND
+            time.sleep(15)
+
+        elif sm_state == SMState.CATCH_PUT_DESCEND:
+            state.logger.info("SM: Descending to put position (10 cm down)")
+            try:
+                r0, theta0, h0 = state.current_pos
+                move_to(r0, theta0, h0 - 105)
+                state.current_pos = (r0, theta0, h0 - 105)
+            except Exception as e:
+                state.logger.error(f"SM: error during put descend: {e}")
+                sm_state = SMState.CATCH_END
+                continue
+
             sm_state = SMState.CATCH_PUT
-            time.sleep(10)
+            time.sleep(3)
 
         elif sm_state == SMState.CATCH_PUT:
             state.logger.info("SM: Put object to target box")
             try:
-                # 打开夹爪
                 catch_on()
             except Exception as e:
                 state.logger.error(f"SM: error during put: {e}")
                 sm_state = SMState.IDLE
-            sm_state = SMState.CATCH_DONE
+            sm_state = SMState.CATCH_PUT_ASCEND
             time.sleep(2)
+
+        elif sm_state == SMState.CATCH_PUT_ASCEND:
+            state.logger.info("SM: Ascending after putting object")
+            try:
+                r0, theta0, h0 = state.current_pos
+                move_to(r0, theta0, h0 + 100)
+                state.current_pos = (r0, theta0, h0 + 100)
+            except Exception as e:
+                state.logger.error(f"SM: error during put ascend: {e}")
+                sm_state = SMState.CATCH_END
+                continue
+
+            sm_state = SMState.CATCH_DONE
+            time.sleep(3)
 
         elif sm_state == SMState.CATCH_DONE:
             state.logger.info("SM: Catch done -> return to safe position")
@@ -306,7 +335,7 @@ def control_state_machine(state, frame_w, frame_h,
 
         elif sm_state == SMState.CATCH_END:
             state.logger.info("SM: Catch process finished, switching to IDLE")
-            state.catch_cnt += 1  # 抓取次数 +1
+            state.catch_cnt += 1
             state.move_done.set()
             sm_state = SMState.IDLE
             time.sleep(5)
