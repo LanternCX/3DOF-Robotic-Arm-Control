@@ -133,7 +133,7 @@ def control_state_machine(state, frame_w, frame_h,
 
                 if not local_boxes:
                     state.logger.warning("SM: move requested but no boxes visible -> remain IDLE")
-                    sm_state = SMState.ALIGN_FAILED
+                    sm_state = SMState.IDLE
                 else:
                     adjust_count = 0
                     sm_state = SMState.SEND_MOVE
@@ -225,8 +225,8 @@ def control_state_machine(state, frame_w, frame_h,
             state.logger.info("SM: Catch descend 10cm")
             try:
                 r0, theta0, h0 = state.pre_catch_pos
-                move_to(r0 - 60, theta0, h0 - 80)  # 向下 10 cm
-                state.current_pos = (r0 - 60, theta0, h0 - 80)
+                move_to(r0 - 50, theta0, h0 - 100)  # 向下 10 cm
+                state.current_pos = (r0 - 50, theta0, h0 - 100)
             except Exception as e:
                 state.logger.error(f"SM: error during descend: {e}")
                 sm_state = SMState.CATCH_END
@@ -243,7 +243,7 @@ def control_state_machine(state, frame_w, frame_h,
             except Exception as e:
                 state.logger.error(f"SM: error closing gripper: {e}")
             sm_state = SMState.CATCH_ASCEND
-            time.sleep(5)
+            time.sleep(2)
 
         elif sm_state == SMState.CATCH_ASCEND:
             state.logger.info("SM: Catch ascend back to pre-catch height")
@@ -280,7 +280,7 @@ def control_state_machine(state, frame_w, frame_h,
                 state.logger.error(f"SM: error during put: {e}")
                 sm_state = SMState.IDLE
             sm_state = SMState.CATCH_DONE
-            time.sleep(5)
+            time.sleep(2)
 
         elif sm_state == SMState.CATCH_DONE:
             state.logger.info("SM: Catch done -> return to safe position")

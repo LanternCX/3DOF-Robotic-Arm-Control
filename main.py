@@ -23,7 +23,7 @@ logger = get_logger("Main")
 SETTLE_CONSECUTIVE_FRAMES = 30
 VISION_SLEEP = 0.01
 CONTROL_POLL = 0.05
-TARGET_TOLERANCE_MM = 8.0
+TARGET_TOLERANCE_MM = 12.0
 MAX_MICROADJUST = 10
 MAX_SETTLE_WAIT = 8.0
 MAX_MOVE_START_WAIT = 4.0
@@ -67,6 +67,13 @@ def main():
     if not cap.isOpened():
         logger.error("Cannot open camera.")
         return
+
+    # 设置曝光
+    # 关闭自动曝光（0 = manual, 1 = auto，有些平台可能不同）
+    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)  # 对于一些 OpenCV 版本，0.25 表示手动模式
+    success = cap.set(cv2.CAP_PROP_EXPOSURE, -4)
+    if not success:
+        logger.warning("Exposure value not supported on this camera")
 
     state.cap = cap
     state.frame_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))

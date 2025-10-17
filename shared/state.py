@@ -31,6 +31,7 @@ class SharedState:
         # 视觉目标
         self.target_type = "green"
         self.now_target_type = None
+        self.has_target = False
 
         # 当前机械臂位置 (r, theta, h)
         self.current_pos = (0.0, 0.0, 0.0)
