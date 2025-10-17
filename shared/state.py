@@ -33,6 +33,9 @@ class SharedState:
         self.now_target_type = None
         self.has_target = False
 
+        self.catch_cnt = 0  # 已完成的抓取次数
+        self.valid_target_count = 0  # 当前检测到的目标数量
+
         # 当前机械臂位置 (r, theta, h)
         self.current_pos = (0.0, 0.0, 0.0)
         # 抓取前位置，用于抓取流程

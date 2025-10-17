@@ -262,12 +262,21 @@ def control_state_machine(state, frame_w, frame_h,
         elif sm_state == SMState.CATCH_MOVE:
             state.logger.info("SM: Catch move to target box")
             try:
-                target_angle = deg2rad(90, 0, 0)
-                set_angle(target_angle)
-                state.current_pos = fk(target_angle[0], target_angle[1], target_angle[2])
+                # 根据抓取次数决定放置方向
+                if state.catch_cnt % 2 == 0:  # 奇数次抓取（计数从0开始）
+                    angle_offset = deg2rad(90, 0, 0)
+                    state.logger.info("Placing object to +60° side.")
+                else:  # 偶数次抓取
+                    angle_offset = deg2rad(-90, 0, 0)
+                    state.logger.info("Placing object to -60° side.")
+
+                set_angle(angle_offset)
+                state.current_pos = fk(angle_offset[0], angle_offset[1], angle_offset[2])
+
             except Exception as e:
                 state.logger.error(f"SM: error during move: {e}")
                 sm_state = SMState.CATCH_END
+
             sm_state = SMState.CATCH_PUT
             time.sleep(10)
 
@@ -297,6 +306,7 @@ def control_state_machine(state, frame_w, frame_h,
 
         elif sm_state == SMState.CATCH_END:
             state.logger.info("SM: Catch process finished, switching to IDLE")
+            state.catch_cnt += 1  # 抓取次数 +1
             state.move_done.set()
             sm_state = SMState.IDLE
             time.sleep(5)

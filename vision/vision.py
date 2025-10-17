@@ -25,10 +25,21 @@ def vision_thread_func(state, VISION_SLEEP=0.01):
             continue
 
         boxes, vis_frame = detect_boxes(frame, state.target_type)
-        if boxes:
+        num_boxes = len(boxes)
+
+        # === 新增逻辑：根据目标数量与抓取次数判断 ===
+        with state.lock:
+            state.valid_target_count = num_boxes
+
+        # 规则：奇数次抓取时目标数应为偶数，偶数次抓取时目标数应为奇数
+        should_proceed = (num_boxes > 0) and ((num_boxes % 2) == (state.catch_cnt % 2))
+
+        if should_proceed:
             state.has_target = True
             state.now_target_type = state.target_type
         else:
+            # 清空状态，防止进入状态机
+            boxes = []
             state.has_target = False
 
         with state.lock:
